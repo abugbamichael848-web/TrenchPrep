@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Past Questions Arranger</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+:root{--bg:#eaf0f5;--panel:#fff;--ink:#14213d;--mute:#5b6b82;--line:#cfd9e4;--acc:#1f7a8c;--acc-ink:#fff;--hl:#ffd166;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a2b;--panel:#17263c;--ink:#e8eef6;--mute:#93a4bb;--line:#2a3d57;--acc:#4cc2d6;--acc-ink:#0f1a2b;--hl:#b8860b}}
+:root[data-theme="dark"]{--bg:#0f1a2b;--panel:#17263c;--ink:#e8eef6;--mute:#93a4bb;--line:#2a3d57;--acc:#4cc2d6;--acc-ink:#0f1a2b;--hl:#b8860b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+h2{font-size:16px;margin:0 0 10px}
+button,select,input,textarea{font:inherit;color:var(--ink)}
+button{background:var(--acc);color:var(--acc-ink);border:0;border-radius:6px;padding:7px 12px;cursor:pointer;font-weight:500}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,.drop:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input,textarea,select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--mute);cursor:pointer;margin-bottom:10px}
+.drop.over{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.topic{border-top:1px solid var(--line);padding:10px 0}
+.topic:first-of-type{border-top:0}
+.topic .head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.topic .nm{font-weight:700;cursor:pointer;background:none;border:0;padding:0;color:var(--ink);text-align:left}
+.topic .nm.on{background:var(--hl);padding:0 4px;border-radius:3px;color:#14213d}
+.count{color:var(--mute);font-size:13px}
+.topic input{margin-top:6px;font-size:13px}
+.qgroup{margin-bottom:18px}
+.qgroup h3{font-size:18px;margin:0 0 8px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:grid;gap:8px}
+.q p{margin:0;font:400 16px/1.55 "Source Serif 4",Georgia,serif;white-space:pre-wrap}
+.q .meta{display:flex;gap:8px;align-items:center;color:var(--mute);font-size:12px;flex-wrap:wrap}
+.q select{width:auto;padding:3px 6px;font-size:13px}
+.q .x{margin-left:auto;background:none;color:var(--mute);padding:2px 6px}
+.empty{color:var(--mute);padding:24px;text-align:center}
+.msg{font-size:13px;color:var(--mute);min-height:1.4em}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}.tabs button{background:transparent;color:var(--ink);border:1px solid var(--line)}.tabs button[aria-selected=true]{background:var(--acc);color:var(--acc-ink)}
+#pAns{white-space:pre-wrap;font:400 15px/1.55 "Source Serif 4",Georgia,serif;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Past Questions Arranger</h1>
+  <p class="sub">Works for any subject. Pick a subject or add your own sub-topics, add past questions from files or pasted text, and they are split up and sorted by keyword.</p>
+  <nav class="tabs"><button id="tA" aria-selected="true">Arrange</button><button id="tP" aria-selected="false">Practice</button><button id="tB" aria-selected="false">Shared bank</button></nav>
+  <div class="grid" id="vA">
+    <aside class="box">
+      <h2>Sub-topics</h2>
+      <select id="preset" aria-label="Load topics for a subject" style="margin-bottom:8px"><option value="">Load a subject's topics…</option></select>
+      <div id="topics"></div>
+      <div class="row"><input id="newTopic" placeholder="New sub-topic name" aria-label="New sub-topic name"><button id="addTopic">Add topic</button></div>
+      <p class="msg">Pick a subject above or add your own topics. Edit the keywords (comma-separated) to improve sorting. Questions that match none go to Unsorted.</p>
+    </aside>
+    <main>
+      <div class="box" style="margin-bottom:16px">
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose files">Drop files here or click to choose<br><small>.txt, .md, .csv, .json and .docx. PDF is not supported here: copy its text and paste below.</small></div>
+        <input type="file" id="file" multiple accept=".txt,.md,.csv,.json,.docx" hidden>
+        <textarea id="paste" placeholder="Or paste questions here, numbered like 1. … 2. … or Q1 …"></textarea>
+        <div class="row"><button id="addPaste">Add pasted questions</button><button class="ghost" id="copyAll">Copy all arranged</button><button class="ghost" id="aiSort" hidden>AI-sort Unsorted</button><button class="ghost" id="clear">Clear questions</button></div>
+        <p class="msg" id="msg" role="status"></p>
+      </div>
+      <div class="row" style="margin:0 0 12px"><input id="search" placeholder="Search questions" aria-label="Search questions"></div>
+      <div id="out"></div>
+    </main>
+  </div>
+  <section id="vP" hidden><div class="box"><h2>Practice</h2><div class="row"><select id="pTopic" style="width:auto" aria-label="Topic"></select><select id="pCount" style="width:auto" aria-label="Number of questions"><option>5</option><option selected>10</option><option>20</option></select><label><input type="checkbox" id="pTimed" style="width:auto"> 90 seconds per question</label><button id="pStart">Start</button></div></div><div id="pArea" style="margin-top:12px"></div><div class="box" style="margin-top:12px"><h2>Recent scores</h2><div id="pHist"></div></div></section>
+  <section id="vB" hidden><div class="box"><h2>Shared bank</h2><p class="msg">Questions shared by everyone using this app. Share yours, or add other people's to your list.</p><div class="row"><input id="bSearch" placeholder="Search the bank" aria-label="Search the bank" style="flex:1"><button id="bShare">Share my questions</button></div><p class="msg" id="bMsg" role="status"></p></div><div id="bList" style="margin-top:12px"></div></section>
+</div>
+<script>
+const K='pqa-v1';
+const PRESETS={
+'Mathematics':[['Algebra','equation, solve, simplify, factorise, quadratic, expression, simultaneous'],['Geometry','triangle, circle, angle, area, perimeter, volume, polygon'],['Statistics & Probability','mean, median, mode, probability, data, frequency, histogram'],['Trigonometry','sin, cos, tan, bearing, elevation'],['Number & Sets','fraction, percentage, ratio, set, sequence, indices, surd']],
+'Biology':[['Cell Biology','cell, nucleus, membrane, mitosis, meiosis, organelle'],['Genetics & Evolution','gene, chromosome, dna, inherit, mutation, evolution'],['Ecology','ecosystem, habitat, food chain, population, pollution'],['Human Physiology','digest, respir, circulat, blood, hormone, excret'],['Plants','photosynthesis, leaf, root, transpiration, pollination']],
+'Chemistry':[['Atomic Structure & Bonding','atom, electron, bond, ionic, covalent, periodic'],['Acids, Bases & Salts','acid, base, salt, ph, titration, neutralis'],['Organic Chemistry','alkane, alkene, alcohol, ester, polymer, organic'],['Rates & Equilibrium','rate, equilibrium, catalyst, reversible'],['Electrochemistry','electrolysis, electrode, oxidation, reduction, cell']],
+'Physics':[['Mechanics','force, velocity, acceleration, momentum, energy, work, power'],['Electricity & Magnetism','current, voltage, resistance, circuit, magnet, induction'],['Waves, Light & Sound','wave, light, lens, reflection, refraction, sound'],['Heat & Thermodynamics','heat, temperature, expansion, gas, specific heat'],['Modern Physics','nucleus, radioactive, half-life, photon']],
+'Economics':[['Demand & Supply','demand, supply, price, elasticity, equilibrium'],['Production & Costs','production, cost, revenue, profit, firm, labour'],['Money & Banking','money, bank, inflation, interest, credit'],['Public Finance & Trade','tax, budget, trade, export, import, government']],
+'English':[['Grammar','tense, noun, verb, adjective, clause, sentence'],['Comprehension','passage, according to, author, meaning of'],['Literature','poem, novel, play, character, theme, imagery'],['Essay & Letter Writing','essay, letter, speech, article, write']],
+'Geography':[['Physical Geography','climate, rock, river, vegetation, relief, weather'],['Human Geography','population, settlement, migration, urban, agriculture'],['Maps & Fieldwork','map, scale, contour, grid, bearing']],
+'Government / Civics':[['Constitution & Democracy','constitution, democracy, election, rights, citizen'],['Arms of Government','legislature, executive, judiciary, parliament'],['International Relations','united nations, african union, ecowas, diplomacy']]
+};
+let S={topics:[],qs:[]};
+try{const r=localStorage.getItem(K);if(r)S=JSON.parse(r)}catch(e){}
+let sel=null;
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const say=t=>$('msg').textContent=t;
+const norm=t=>t.toLowerCase().replace(/\s+/g,' ').trim();
+
+function split(text){
+  const lines=text.replace(/\r/g,'').split('\n'),start=/^\s*(?:Q(?:uestion)?\.?\s*)?\d{1,3}\s*[.):\-]\s+\S/i;
+  let out=[],cur=null;
+  for(const l of lines){
+    if(start.test(l)){if(cur)out.push(cur);cur=l.replace(/^\s*(?:Q(?:uestion)?\.?\s*)?\d{1,3}\s*[.):\-]\s+/i,'')}
+    else if(cur!==null)cur+='\n'+l;
+  }
+  if(cur)out.push(cur);
+  if(out.length<2)out=text.split(/\n\s*\n/);
+  return out.map(s=>s.trim()).filter(s=>s.length>8);
+}
+function add(text,src){
+  const seen=new Set(S.qs.map(q=>norm(q.text)));let n=0;
+  for(const t of split(text)){const k=norm(t);if(seen.has(k))continue;seen.add(k);S.qs.push({id:Date.now()+'-'+Math.random().toString(36).slice(2,7),text:t,src,topic:null});n++}
+  save();render();return n;
+}
+function auto(q){
+  if(q.topic!==null&&S.topics.some(t=>t.name===q.topic))return q.topic;
+  const low=q.text.toLowerCase();let best='Unsorted',bs=0;
+  for(const t of S.topics){
+    const s=t.keywords.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean).reduce((a,k)=>a+(low.split(k).length-1),0);
+    if(s>bs){bs=s;best=t.name}
+  }
+  return best;
+}
+async function readFile(f){
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(ext==='docx'){
+    if(!window.mammoth)throw new Error('docx reader did not load');
+    return (await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
+  }
+  if(ext==='pdf')throw new Error('PDF is not supported. Copy its text and paste it instead');
+  return await f.text();
+}
+async function files(list){
+  let total=0,errs=[];
+  for(const f of list){try{total+=add(await readFile(f),f.name)}catch(e){errs.push(f.name+': '+e.message)}}
+  say(`Added ${total} new question${total===1?'':'s'}.`+(errs.length?' Problems: '+errs.join('; '):''));
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function grouped(){
+  const f=norm($('search').value),g={};
+  for(const t of S.topics)g[t.name]=[];g['Unsorted']=[];
+  for(const q of S.qs){if(f&&!norm(q.text).includes(f))continue;g[auto(q)].push(q)}
+  return g;
+}
+function render(){
+  const g=grouped(),all={};
+  for(const q of S.qs){const k=auto(q);all[k]=(all[k]||0)+1}
+  $('topics').innerHTML=S.topics.map((t,i)=>`<div class="topic"><div class="head"><button class="nm ${sel===t.name?'on':''}" data-f="${i}">${esc(t.name)}</button><span class="count">${all[t.name]||0} <button class="ghost" data-d="${i}" aria-label="Remove ${esc(t.name)}" style="padding:1px 6px">×</button></span></div><input data-k="${i}" value="${esc(t.keywords)}" aria-label="Keywords for ${esc(t.name)}"></div>`).join('')
+   +`<div class="topic"><div class="head"><button class="nm ${sel==='Unsorted'?'on':''}" data-f="u">Unsorted</button><span class="count">${all['Unsorted']||0}</span></div></div>`;
+  const names=[...S.topics.map(t=>t.name),'Unsorted'].filter(n=>!sel||n===sel);
+  const opts=cur=>[...S.topics.map(t=>t.name),'Unsorted'].map(n=>`<option ${n===cur?'selected':''}>${esc(n)}</option>`).join('');
+  let h='';
+  for(const n of names){
+    const list=g[n]||[];if(!list.length&&(sel||n==='Unsorted'))continue;
+    h+=`<section class="qgroup"><h3>${esc(n)} <span class="count">${list.length}</span><button class="ghost" data-c="${esc(n)}">Copy</button></h3>`
+     +(list.length?list.map((q,i)=>`<div class="q"><p>${esc(q.text)}</p><div class="meta"><span>${i+1}. from ${esc(q.src)}</span><label>Move to <select data-m="${q.id}">${opts(n)}</select></label><button class="x" data-r="${q.id}" aria-label="Delete question">Delete</button></div></div>`).join(''):'<div class="empty">No questions yet.</div>')+'</section>';
+  }
+  $('out').innerHTML=h||'<div class="empty">Nothing here yet. Drop a file or paste questions to get started.</div>';
+}
+function textFor(n){return (grouped()[n]||[]).map((q,i)=>`${i+1}. ${q.text}`).join('\n\n')}
+async function copy(t){try{await navigator.clipboard.writeText(t);say('Copied to clipboard.')}catch(e){say('Copy was blocked. Select the text and copy it manually.')}}
+
+$('drop').onclick=()=>$('file').click();
+$('drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}};
+$('file').onchange=e=>{files([...e.target.files]);e.target.value=''};
+['dragover','dragenter'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('over')}));
+['dragleave','drop'].forEach(ev=>$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('over')}));
+$('drop').addEventListener('drop',e=>files([...e.dataTransfer.files]));
+$('addPaste').onclick=()=>{const n=add($('paste').value,'pasted text');$('paste').value='';say(`Added ${n} new question${n===1?'':'s'}.`)};
+$('addTopic').onclick=()=>{const v=$('newTopic').value.trim();if(!v||S.topics.some(t=>t.name.toLowerCase()===v.toLowerCase()))return;S.topics.push({name:v,keywords:''});$('newTopic').value='';save();render()};
+$('clear').onclick=()=>{if(confirm('Remove all questions?')){S.qs=[];save();render();say('Cleared.')}};
+$('copyAll').onclick=()=>copy([...S.topics.map(t=>t.name),'Unsorted'].filter(n=>(grouped()[n]||[]).length).map(n=>`## ${n}\n\n${textFor(n)}`).join('\n\n'));
+$('search').oninput=render;
+document.addEventListener('click',e=>{
+  const d=e.target.dataset;if(!d)return;
+  if(d.f!==undefined){const n=d.f==='u'?'Unsorted':S.topics[d.f].name;sel=sel===n?null:n;render()}
+  if(d.d!==undefined){const n=S.topics[d.d].name;if(confirm(`Remove topic "${n}"? Its questions move to Unsorted or another matching topic.`)){S.qs.forEach(q=>{if(q.topic===n)q.topic=null});S.topics.splice(d.d,1);if(sel===n)sel=null;save();render()}}
+  if(d.r){S.qs=S.qs.filter(q=>q.id!==d.r);save();render()}
+  if(d.c)copy(`## ${d.c}\n\n${textFor(d.c)}`);
+});
+document.addEventListener('change',e=>{
+  const d=e.target.dataset;
+  if(d.m){const q=S.qs.find(x=>x.id===d.m);q.topic=e.target.value;save();render()}
+  if(d.k!==undefined){S.topics[d.k].keywords=e.target.value;save();render()}
+});
+const cl={},hash=s=>{let h=5381;for(const c of s)h=((h<<5)+h+c.charCodeAt(0))>>>0;return 'q'+h.toString(36)};
+const TABS=['A','P','B'];
+function tab(t){TABS.forEach(x=>{$('v'+x).hidden=x!==t;$('t'+x).setAttribute('aria-selected',x===t)});if(t==='B')loadBank();if(t==='P')pSetup()}
+TABS.forEach(x=>$('t'+x).onclick=()=>tab(x));
+const shim=async p=>{const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});if(!r.ok)throw new Error('AI error '+r.status);return {text:(await r.json()).text}};
+shim.json=async p=>JSON.parse((await shim(p)).text.replace(/```json|```/g,'').trim());
+(async()=>{try{if(!window.claude){cl.sample=shim;$('aiSort').hidden=false;$('tB').hidden=true;return}[cl.sample,cl.db,cl.user]=await Promise.all(['sample','db','user'].map(n=>claude.use(n)));if(cl.sample)$('aiSort').hidden=false;if(cl.user)cl.me=(await cl.user.me()).id}catch(e){}})();
+$('aiSort').onclick=async()=>{
+ const u=S.qs.filter(q=>auto(q)==='Unsorted').slice(0,25);
+ if(!u.length||!S.topics.length)return say('Add topics first, then AI can sort the Unsorted questions.');
+ say('Asking Claude…');
+ try{const r=await cl.sample.json(`Topics: ${JSON.stringify(S.topics.map(t=>t.name))}\nAssign each question to exactly one topic, or "Unsorted" if none fit. Reply with only a JSON array of ${u.length} strings, in order.\nQuestions:\n`+u.map((q,i)=>`${i+1}. ${q.text.slice(0,300)}`).join('\n'));
+  u.forEach((q,i)=>{if(S.topics.some(t=>t.name===r[i]))q.topic=r[i]});save();render();say('AI sorted what it could.')}catch(e){say('AI sorting is unavailable: '+(e.message||e.code))}};
+let P=null,H=[];try{H=JSON.parse(localStorage.getItem('pqa-h')||'[]')}catch(e){}
+function hist(){$('pHist').innerHTML=H.length?H.slice(-8).reverse().map(h=>`<div class="count">${h.d}: ${esc(h.t)}, ${h.s}/${h.n}</div>`).join(''):'<div class="count">No practice sessions yet.</div>'}
+function pSetup(){$('pTopic').innerHTML='<option value="">All topics</option>'+[...S.topics.map(t=>t.name),'Unsorted'].map(n=>`<option>${esc(n)}</option>`).join('');hist()}
+$('pStart').onclick=()=>{
+ let L=S.qs.filter(q=>!$('pTopic').value||auto(q)===$('pTopic').value).sort(()=>Math.random()-.5).slice(0,+$('pCount').value);
+ if(!L.length){$('pArea').innerHTML='<div class="empty">No questions here yet. Add some in Arrange.</div>';return}
+ P={L,i:0,s:0,t:$('pTopic').value||'All topics',timed:$('pTimed').checked};pShow()};
+function pShow(){
+ clearInterval(P.tm);
+ if(P.i>=P.L.length){const r={d:new Date().toLocaleDateString(),t:P.t,s:P.s,n:P.L.length};H.push(r);try{localStorage.setItem('pqa-h',JSON.stringify(H))}catch(e){}
+  if(cl.db&&cl.me)cl.db.collection('data/users/'+cl.me).doc('s'+Date.now()).set(r).catch(()=>{});
+  $('pArea').innerHTML=`<div class="box"><h2>Score: ${P.s} / ${P.L.length}</h2><p>${Math.round(100*P.s/P.L.length)}% on ${esc(P.t)}.</p></div>`;hist();return}
+ const q=P.L[P.i];
+ $('pArea').innerHTML=`<div class="box"><div class="count">Question ${P.i+1} of ${P.L.length}<span id="pClock"></span></div><div class="q" style="margin:8px 0"><p>${esc(q.text)}</p></div><div id="pAns"></div><div class="row"><button class="ghost" id="pAI" ${cl.sample?'':'hidden'}>Show answer with AI</button><button id="pGot">I got it</button><button class="ghost" id="pMiss">I missed it</button></div></div>`;
+ $('pGot').onclick=()=>{P.s++;P.i++;pShow()};$('pMiss').onclick=()=>{P.i++;pShow()};
+ $('pAI').onclick=async()=>{$('pAns').textContent='Thinking…';try{const r=await cl.sample(`Answer this exam question for a student. Give the answer, then a short step-by-step explanation. Plain text.\n\n${q.text}`,{onText:x=>$('pAns').textContent=x.text});$('pAns').textContent=r.text}catch(e){$('pAns').textContent='AI is unavailable right now.'}};
+ if(P.timed){let n=90;const c=$('pClock');c.textContent=': 90s';P.tm=setInterval(()=>{n--;c.textContent=': '+n+'s';if(n<=0){clearInterval(P.tm);P.i++;pShow()}},1000)}}
+async function loadBank(){
+ const el=$('bList');
+ if(!cl.db){el.innerHTML='<div class="empty">The shared bank needs the cloud version of this app. Arranging and practice still work.</div>';return}
+ el.textContent='Loading…';
+ try{const s=await cl.db.collection('bank').limit(200).get(),f=norm($('bSearch').value);
+  cl.items=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!f||norm(x.text+' '+x.topic).includes(f));
+  el.innerHTML=cl.items.length?cl.items.map(x=>`<div class="q"><p>${esc(x.text)}</p><div class="meta"><span>${esc(x.topic||'')}</span><button data-i="${x.id}">Add to mine</button></div></div>`).join(''):'<div class="empty">Nothing shared yet. Be the first to share.</div>'}
+ catch(e){el.innerHTML='<div class="empty">Could not load the bank: '+esc(e.message||e.code||'error')+'</div>'}}
+$('bSearch').oninput=()=>{if(cl.db)loadBank()};
+$('bShare').onclick=async()=>{
+ if(!cl.db)return $('bMsg').textContent='Sharing needs the cloud version of this app.';
+ let n=0;try{for(const q of S.qs.slice(0,50)){await cl.db.collection('bank').doc(hash(norm(q.text))).set({text:q.text,topic:auto(q),by:cl.me||'',at:Date.now()});n++}
+  $('bMsg').textContent=`Shared ${n} question${n===1?'':'s'}.`;loadBank()}catch(e){$('bMsg').textContent='Could not share: '+(e.message||e.code)}};
+document.addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.i;if(!id)return;const x=(cl.items||[]).find(i=>i.id===id);if(!x)return;
+ if(x.topic&&x.topic!=='Unsorted'&&!S.topics.some(t=>t.name===x.topic))S.topics.push({name:x.topic,keywords:''});
+ if(!S.qs.some(q=>norm(q.text)===norm(x.text)))S.qs.push({id:Date.now()+'-'+Math.random().toString(36).slice(2,7),text:x.text,src:'shared bank',topic:null});
+ save();render();e.target.textContent='Added';e.target.disabled=true});
+$('preset').innerHTML+=Object.keys(PRESETS).map(k=>`<option>${k}</option>`).join('');
+$('preset').onchange=e=>{const p=PRESETS[e.target.value];if(!p)return;p.forEach(([name,keywords])=>{if(!S.topics.some(t=>t.name.toLowerCase()===name.toLowerCase()))S.topics.push({name,keywords})});e.target.value='';save();render();say('Topics loaded. You can edit any keywords.')};
+render();
+</script>
+</body>
+</html>
